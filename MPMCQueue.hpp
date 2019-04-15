@@ -8,7 +8,7 @@
 #pragma once
 #include <memory>
 
-// A basic multi-producer, multi-consumer bounded queue.
+// A lock-free basic multi-producer, multi-consumer bounded queue.
 template<typename T>
 class MPMCQueue {
 public:
@@ -51,6 +51,7 @@ public:
                 // The expected slot is occupied, therefore the buffer is full.
                 return false;
             }
+            // This path normally isn't taken.
         }
     }
 
@@ -76,6 +77,7 @@ public:
                 // The expected slot is empty, therefore the buffer is empty.
                 return false;
             }
+            // This path normally isn't taken.
         }
     }
 private:
