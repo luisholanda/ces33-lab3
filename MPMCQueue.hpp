@@ -5,14 +5,13 @@
 #ifndef LAB3_MPMCQUEUE_HPP
 #define LAB3_MPMCQUEUE_HPP
 
-#pragma once
 #include <memory>
 
-// A lock-free basic multi-producer, multi-consumer bounded queue.
+/// A lock-free basic multi-producer, multi-consumer bounded queue.
 template<typename T>
 class MPMCQueue {
 public:
-    MPMCQueue(size_t size)
+    explicit MPMCQueue(size_t size)
         : buffer(reinterpret_cast<cell_t*>(new aligned_cell_t[size]))
         , buffer_mask(size - 1)
         , producer_pos(0)
@@ -29,8 +28,8 @@ public:
         delete []buffer;
     }
 
-    // Tries to add an element to the queue.
-    // Returns false if the queue is full.
+    /// Tries to add an element to the queue.
+    /// Returns false if the queue is full.
     bool enqueue(T const& data) {
         for(;;) {
             size_t pos = producer_pos.load(std::memory_order_relaxed);
@@ -55,8 +54,8 @@ public:
         }
     }
 
-    // Tries to remove an element from the queue.
-    // Returns false if the queue is empty.
+    /// Tries to remove an element from the queue.
+    /// Returns false if the queue is empty.
     bool dequeue(T &data) {
         for(;;) {
             size_t pos = consumer_pos.load(std::memory_order_relaxed);
@@ -96,7 +95,7 @@ private:
     alignas(64) std::atomic_size_t producer_pos;
     alignas(64) std::atomic_size_t consumer_pos;
 
-    void operator=(const MPMCQueue&) {};
+    void operator=(const MPMCQueue&) = default;
 };
 
 #endif //LAB3_MPMCQUEUE_HPP
