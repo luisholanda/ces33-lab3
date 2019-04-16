@@ -41,12 +41,11 @@ public:
     /// If the queue is empty, waits until an item is available.
     void dequeue(T &data) noexcept {
         for(;;) {
-            // Wait for a produced item.
+            // Wait for a new item.
             prod_sem.wait();
 
             if(queue.dequeue(data)) {
-                // A produced item was consumed, therefore an empty
-                // space was added.
+                // An item was consumed, therefore an empty space was added.
                 cons_sem.post();
                 return;
             }
