@@ -16,7 +16,7 @@ public:
 
     virtual ~Semaphore() = default;
 
-    void post() noexcept {
+    inline void post() noexcept {
         {
             std::unique_lock<std::mutex> lock(mtx);
             count++;
@@ -24,7 +24,7 @@ public:
         cv.notify_one();
     }
 
-    void wait() noexcept {
+    inline void wait() noexcept {
         std::unique_lock<std::mutex> lock(mtx);
         cv.wait(lock, [&]() { return count != 0; });
         count--;

@@ -30,7 +30,7 @@ public:
 
     /// Tries to add an element to the queue.
     /// Returns false if the queue is full.
-    bool enqueue(T const& data) {
+    bool enqueue(T const& data) noexcept {
         for(;;) {
             size_t pos = producer_pos.load(std::memory_order_relaxed);
             cell_t* cell = &buffer[pos & buffer_mask];
@@ -56,7 +56,7 @@ public:
 
     /// Tries to remove an element from the queue.
     /// Returns false if the queue is empty.
-    bool dequeue(T &data) {
+    bool dequeue(T &data) noexcept {
         for(;;) {
             size_t pos = consumer_pos.load(std::memory_order_relaxed);
             cell_t* cell = &buffer[pos & buffer_mask];

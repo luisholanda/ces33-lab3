@@ -14,14 +14,8 @@
 template<typename T>
 class SemapQueue {
 public:
-    enum Kind {
-        Producer,
-        Consumer
-    };
-
-    SemapQueue(size_t size, Kind kind)
-        : kind(kind)
-        , queue(size)
+    explicit SemapQueue(size_t size)
+        : queue(size)
         , cons_sem(size)
         , prod_sem(0)
     {}
@@ -30,7 +24,7 @@ public:
 
     /// Adds a new item to the queue.
     /// If the queue is full, waits until a space is available.
-    void enqueue(T const& data) {
+    void enqueue(T const& data) noexcept {
         for(;;) {
             // Wait for a space.
             cons_sem.wait();
@@ -45,7 +39,7 @@ public:
 
     /// Removes an item from the queue.
     /// If the queue is empty, waits until an item is available.
-    void dequeue(T &data) {
+    void dequeue(T &data) noexcept {
         for(;;) {
             // Wait for a produced item.
             prod_sem.wait();
@@ -59,7 +53,6 @@ public:
         }
     }
 private:
-    Kind kind;
     MPMCQueue<T> queue;
 
     // Synchronization semaphores.
