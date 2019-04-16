@@ -181,3 +181,7 @@ _deps
 
 # End of https://www.gitignore.io/api/c,c++,cmake,clion+all
 
+# VSCode
+.vscode/
+
+
