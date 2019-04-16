@@ -95,7 +95,7 @@ private:
     alignas(64) std::atomic_size_t producer_pos;
     alignas(64) std::atomic_size_t consumer_pos;
 
-    void operator=(const MPMCQueue&) = default;
+    MPMCQueue<T>& operator=(const MPMCQueue<T>&) = default;
 };
 
 #endif //LAB3_MPMCQUEUE_HPP
