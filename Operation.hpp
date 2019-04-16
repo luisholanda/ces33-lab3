@@ -6,6 +6,7 @@
 #define LAB3_OPERATION_HPP
 
 
+template<typename T>
 struct Operation {
     /// All possible operations.
     enum Kind {
@@ -22,17 +23,18 @@ struct Operation {
     /// What operation will be realized.
     Kind kind = Nop;
     /// Left-hand of the operation.
-    void* const lhs = nullptr;
+    T* const lhs = nullptr;
     /// Right-hand of the operation.
     /// In a `Kind::Transpose` operation, this can be ignored.
-    void* const rhs = nullptr;
+    T* const rhs = nullptr;
 
-    static Operation sum(void* lhs, void* rhs) noexcept;
-    static Operation multiply(void* lhs, void* rhs) noexcept;
-    static Operation transpose(void* matrix) noexcept;
+    static Operation sum(T* lhs, T* rhs) noexcept;
+    static Operation multiply(T* lhs, T* rhs) noexcept;
+    static Operation transpose(T* matrix) noexcept;
 };
 
-inline Operation Operation::sum(void *const lhs, void *const rhs) noexcept {
+template<typename T>
+inline Operation<T> Operation<T>::sum(T *const lhs, T *const rhs) noexcept {
     return Operation {
         .kind = Operation::Kind::Sum,
         .lhs = lhs,
@@ -40,7 +42,8 @@ inline Operation Operation::sum(void *const lhs, void *const rhs) noexcept {
     };
 }
 
-inline Operation Operation::multiply(void *const lhs, void *const rhs) noexcept {
+template<typename T>
+inline Operation<T> Operation<T>::multiply(T *const lhs, T *const rhs) noexcept {
     return Operation {
         .kind = Operation::Kind::Multiply,
         .lhs = lhs,
@@ -48,7 +51,8 @@ inline Operation Operation::multiply(void *const lhs, void *const rhs) noexcept 
     };
 }
 
-inline Operation Operation::transpose(void *const matrix) noexcept {
+template<typename T>
+inline Operation<T> Operation<T>::transpose(T *const matrix) noexcept {
     return Operation {
         .kind = Operation::Kind::Transpose,
         .lhs = matrix
