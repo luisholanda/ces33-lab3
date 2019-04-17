@@ -12,16 +12,18 @@ def collect_means(samples):
 seri_samples = None
 para_samples = None
 
-with open("serial.txt") as concurrent:
-    seri_samples = np.loadtxt(concurrent)
-# with open("parallel.txt") as parallel:
-#     para_samples = np.fromfile(parallel)
+with open("serial.txt") as serial:
+    seri_samples = np.loadtxt(serial)
+with open("parallel.txt") as parallel:
+    para_samples = np.loadtxt(parallel)
 
-means = collect_means(seri_samples)
+seri_means = collect_means(seri_samples)
+para_means = collect_means(para_samples)
 
-plt.plot(means)
-plt.title("Mean time to execute 1000 serial operations")
+plt.plot(list(zip(seri_means, para_means)))
+plt.title("Mean time to execute 1000 operations")
 plt.xlabel("Iteration")
-plt.ylabel("Mean time (s)")
+plt.ylabel("Time (s)")
+plt.legend(["Synchronous", "Asynchronous"])
 plt.show()
-plt.savefig("serial.jpg")
+# plt.savefig("comparison.png")

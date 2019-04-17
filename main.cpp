@@ -14,7 +14,9 @@
 const size_t MATRIX_SIZE = 100;
 const size_t NUMBER_OPS = 1000;
 const size_t NUMBER_SAMPLES = 2000;
+const size_t THREADS_NUMBER_SAMPLES = 500;
 
+const size_t MAX_THREADS = 8;
 const size_t NUMBER_THREADS = 4;
 const size_t CHANNEL_SIZE = 16;
 
@@ -66,28 +68,30 @@ void consumer(Channel<Operation<Matrix<double>>>* chan) {
     Operation<Matrix<double>> op;
 
     while(chan->recv(op)) {
-        std::cout << std::this_thread::get_id() << ": Recv OP " << op.kind << std::endl;
+        // std::cout << std::this_thread::get_id() << ": Recv OP " << op.kind << std::endl;
         auto res = execute(op);
         if (res.has_value()) {
-            std::cout << std::this_thread::get_id() << ": Finalized OP" << std::endl;
+            // std::cout << std::this_thread::get_id() << ": Finalized OP" << std::endl;
         }
     }
 
-    std::cout << std::this_thread::get_id() << ": Finalized execution" << std::endl;
+    // std::cout << std::this_thread::get_id() << ": Finalized execution" << std::endl;
 }
 
-void parallel(Matrix<double>* m, Matrix<double>* n) {
+clock_t parallel(Matrix<double>* m, Matrix<double>* n, size_t numThreads = NUMBER_THREADS) {
+    clock_t timer;
     auto channel = new Channel<Operation<Matrix<double>>>(CHANNEL_SIZE);
 
     std::vector<std::thread> threads{};
     threads.reserve(NUMBER_THREADS);
 
-    for (size_t t = 0; t != NUMBER_THREADS; t++) {
+    for (size_t t = 0; t != numThreads; t++) {
         std::thread thread(consumer, channel);
 
         threads.push_back(std::move(thread));
     }
 
+    timer = std::clock();
     for (size_t i = 0; i != NUMBER_OPS; i++) {
         auto op = random_op(m, n);
 
@@ -99,15 +103,20 @@ void parallel(Matrix<double>* m, Matrix<double>* n) {
     for (auto& thread : threads) {
         thread.join();
     }
+
+    return std::clock() - timer;
 }
 
-void serial(Matrix<double>* m, Matrix<double>* n) {
+clock_t serial(Matrix<double>* m, Matrix<double>* n) {
+    clock_t timer;
+    timer = std::clock();
     for (size_t i = 0; i != NUMBER_OPS; i++) {
         auto op = random_op(m, n);
         // std::cout << "Recv OP [kind = " << op.kind << "] num " << i << " " << NUMBER_OPS << " " << (i < NUMBER_OPS) << std::endl;
         execute(op);
         // std::cout << "Finished OP" << std::endl;
     }
+    return std::clock() - timer;
 }
 
 void dump(const std::vector<double> data, std::string filename) {
@@ -120,23 +129,28 @@ void dump(const std::vector<double> data, std::string filename) {
     of.close();
 }
 
-int main() {
-    auto m = new Matrix<>(MATRIX_SIZE, MATRIX_SIZE);
-    auto n = new Matrix<>(MATRIX_SIZE, MATRIX_SIZE);
+void testThreads(Matrix<double>* m, Matrix<double>* n) {
+    std::vector<double> meantimeByThread;
+    for (int threads = 1; threads <= MAX_THREADS; threads++) {
+        double mean = 0.0, elapsed;
+        for (size_t sample = 0; sample < THREADS_NUMBER_SAMPLES; sample++) {
+            elapsed = parallel(m, n, threads) / (double) CLOCKS_PER_SEC;
+            mean = (sample * mean + elapsed)/ (sample + 1);
+            std::cout << "Iteration " << sample + 1 << ": mean = " << mean << "s" << std::endl;
+        }
+        meantimeByThread.push_back(mean);
+    }
+    dump(meantimeByThread, "threads.txt");
+}
 
-    *m = Matrix<>::random(MATRIX_SIZE, MATRIX_SIZE);
-    *n = Matrix<>::random(MATRIX_SIZE, MATRIX_SIZE);
-
-    clock_t timer;
+void testCmpSyncAsync(Matrix<double>* m, Matrix<double>* n) {
     double elapsed, mean = 0.0, deviation = -1.0;
     std::vector<double> samples;
     for (size_t sample = 0; sample < NUMBER_SAMPLES; sample++) {
-        timer = std::clock();
         
-        // parallel(m, n);
-        serial(m, n);
+        // elapsed = parallel(m, n) / (double) CLOCKS_PER_SEC;
+        elapsed = serial(m, n) / (double) CLOCKS_PER_SEC;
 
-        elapsed = (std::clock() - timer) / (double) CLOCKS_PER_SEC;
         samples.push_back(elapsed);
         mean = (sample * mean + elapsed)/ (sample + 1);
         
@@ -154,6 +168,19 @@ int main() {
     std::cout << "Final deviation = " << deviation << " s^2" << std::endl;
     dump(samples, "serial.txt");
     // dump(samples, "parallel.txt");
+}
 
+int main() {
+    clock_t program_timer = std::clock();
+    auto m = new Matrix<>(MATRIX_SIZE, MATRIX_SIZE);
+    auto n = new Matrix<>(MATRIX_SIZE, MATRIX_SIZE);
+
+    *m = Matrix<>::random(MATRIX_SIZE, MATRIX_SIZE);
+    *n = Matrix<>::random(MATRIX_SIZE, MATRIX_SIZE);
+
+    testThreads(m, n);
+    // testCmpSyncAsync(m, n);
+
+    std::cout << "Program duration: " << (std::clock() - program_timer) / (double) CLOCKS_PER_SEC << std::endl;
     return 0;
 }
