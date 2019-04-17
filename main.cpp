@@ -29,8 +29,7 @@ std::optional<Matrix<double>> execute(Operation<Matrix<double>>& op) {
         case Op::Kind::Multiply:
             return *op.lhs * *op.rhs;
         case Op::Kind::Transpose:
-            op.lhs->transpose();
-            return *op.lhs;
+            return op.lhs->transpose();
         case Op::Kind::Nop:
             return std::nullopt;
     }
