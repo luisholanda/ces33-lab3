@@ -2,6 +2,7 @@
 #define LAB3_MATRIX_HPP
 
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <random>
 #include <cassert>
@@ -43,22 +44,24 @@ public:
     *   \brief Prints matrix do stdout
     */
     void print() {
+        std::ostringstream os;
+
         for (const auto& row : data) {
             for (const auto& elem : row) {
-                std::cout << elem << " ";
+                os << elem << " ";
             }
-            std::cout << std::endl;
+            os << std::endl;
         }
+
+        std::cout << os.str();
     }
 
-    Matrix<T>& transpose() {
-        MatrixCont old = data;
-        std::swap(nrows, ncols);
-        data.clear();
-        data.assign(nrows, RowCont(ncols));
+    Matrix<T> transpose() {
+        Matrix<T> res(ncols, nrows);
+
         for (size_t i = 0; i < nrows; i++) {
             for (size_t j = 0; j < ncols; j++) {
-                data[i][j] = old[j][i];
+                res.data[i][j] = data[j][i];
             }
         }
         return *this;
@@ -124,6 +127,7 @@ public:
         return *this;
     }
 
+    Matrix<T>& operator=(Matrix<T> const& m) = default;
 private:
     using RowCont = std::vector<T>;     //!< Container for rows
     using MatrixCont = std::vector<RowCont>; //!< Container for columns

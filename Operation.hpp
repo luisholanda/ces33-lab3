@@ -5,7 +5,7 @@
 #ifndef LAB3_OPERATION_HPP
 #define LAB3_OPERATION_HPP
 
-
+/// An operation to be realized.
 template<typename T>
 struct Operation {
     /// All possible operations.
@@ -23,14 +23,16 @@ struct Operation {
     /// What operation will be realized.
     Kind kind = Nop;
     /// Left-hand of the operation.
-    T* const lhs = nullptr;
+    T* lhs = nullptr;
     /// Right-hand of the operation.
     /// In a `Kind::Transpose` operation, this can be ignored.
-    T* const rhs = nullptr;
+    T* rhs = nullptr;
 
     static Operation sum(T* lhs, T* rhs) noexcept;
     static Operation multiply(T* lhs, T* rhs) noexcept;
     static Operation transpose(T* matrix) noexcept;
+
+    Operation<T>& operator=(Operation<T> const& op) = default;
 };
 
 template<typename T>
