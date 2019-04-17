@@ -13,7 +13,7 @@
 
 const size_t MATRIX_SIZE = 100;
 const size_t NUMBER_OPS = 1000;
-const size_t NUMBER_SAMPLES = 2000;
+const size_t NUMBER_SAMPLES = 1000;
 const size_t THREADS_NUMBER_SAMPLES = 500;
 
 const size_t MAX_THREADS = 8;
@@ -78,6 +78,10 @@ void consumer(Channel<Operation<Matrix<double>>>* chan) {
     // std::cout << std::this_thread::get_id() << ": Finalized execution" << std::endl;
 }
 
+clock_t now() {
+    return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+}
+
 clock_t parallel(Matrix<double>* m, Matrix<double>* n, size_t numThreads = NUMBER_THREADS) {
     clock_t timer;
     auto channel = new Channel<Operation<Matrix<double>>>(CHANNEL_SIZE);
@@ -105,10 +109,6 @@ clock_t parallel(Matrix<double>* m, Matrix<double>* n, size_t numThreads = NUMBE
     }
 
     return now() - timer;
-}
-
-clock_t now() {
-    return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 }
 
 clock_t serial(Matrix<double>* m, Matrix<double>* n) {
