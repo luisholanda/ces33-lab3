@@ -26,4 +26,12 @@ plt.xlabel("Iteration")
 plt.ylabel("Time (s)")
 plt.legend(["Synchronous", "Asynchronous"])
 plt.show()
-# plt.savefig("comparison.png")
+
+with open("threads.txt") as threads:
+    threads_means = np.loadtxt(threads)
+
+plt.plot(range(1,9), threads_means)
+plt.title("Mean time to execute 1000 operations (500 samples)")
+plt.xlabel("Number of consumers")
+plt.ylabel("Time (s)")
+plt.show()

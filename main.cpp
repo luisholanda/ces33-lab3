@@ -91,7 +91,7 @@ clock_t parallel(Matrix<double>* m, Matrix<double>* n, size_t numThreads = NUMBE
         threads.push_back(std::move(thread));
     }
 
-    timer = std::clock();
+    timer = now();
     for (size_t i = 0; i != NUMBER_OPS; i++) {
         auto op = random_op(m, n);
 
@@ -104,19 +104,23 @@ clock_t parallel(Matrix<double>* m, Matrix<double>* n, size_t numThreads = NUMBE
         thread.join();
     }
 
-    return std::clock() - timer;
+    return now() - timer;
+}
+
+clock_t now() {
+    return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 }
 
 clock_t serial(Matrix<double>* m, Matrix<double>* n) {
     clock_t timer;
-    timer = std::clock();
+    timer = now();
     for (size_t i = 0; i != NUMBER_OPS; i++) {
         auto op = random_op(m, n);
         // std::cout << "Recv OP [kind = " << op.kind << "] num " << i << " " << NUMBER_OPS << " " << (i < NUMBER_OPS) << std::endl;
         execute(op);
         // std::cout << "Finished OP" << std::endl;
     }
-    return std::clock() - timer;
+    return now() - timer;
 }
 
 void dump(const std::vector<double> data, std::string filename) {
@@ -171,7 +175,7 @@ void testCmpSyncAsync(Matrix<double>* m, Matrix<double>* n) {
 }
 
 int main() {
-    clock_t program_timer = std::clock();
+    clock_t program_timer = now();
     auto m = new Matrix<>(MATRIX_SIZE, MATRIX_SIZE);
     auto n = new Matrix<>(MATRIX_SIZE, MATRIX_SIZE);
 
@@ -181,6 +185,6 @@ int main() {
     testThreads(m, n);
     // testCmpSyncAsync(m, n);
 
-    std::cout << "Program duration: " << (std::clock() - program_timer) / (double) CLOCKS_PER_SEC << std::endl;
+    std::cout << "Program duration: " << (now() - program_timer) / (double) CLOCKS_PER_SEC << std::endl;
     return 0;
 }
