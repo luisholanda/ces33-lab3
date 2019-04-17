@@ -16,7 +16,7 @@ const size_t NUMBER_OPS = 1000;
 const size_t NUMBER_SAMPLES = 1000;
 const size_t THREADS_NUMBER_SAMPLES = 500;
 
-const size_t MAX_THREADS = 8;
+const size_t MAX_THREADS = 24;
 const size_t NUMBER_THREADS = 4;
 const size_t CHANNEL_SIZE = 16;
 
@@ -135,10 +135,10 @@ void dump(const std::vector<double> data, std::string filename) {
 
 void testThreads(Matrix<double>* m, Matrix<double>* n) {
     std::vector<double> meantimeByThread;
-    for (int threads = 1; threads <= MAX_THREADS; threads++) {
+    for (int threads = 17; threads <= MAX_THREADS; threads++) {
         double mean = 0.0, elapsed;
         for (size_t sample = 0; sample < THREADS_NUMBER_SAMPLES; sample++) {
-            elapsed = parallel(m, n, threads) / (double) CLOCKS_PER_SEC;
+            elapsed = parallel(m, n, threads);
             mean = (sample * mean + elapsed)/ (sample + 1);
             std::cout << "Iteration " << sample + 1 << ": mean = " << mean << "s" << std::endl;
         }
@@ -152,8 +152,8 @@ void testCmpSyncAsync(Matrix<double>* m, Matrix<double>* n) {
     std::vector<double> samples;
     for (size_t sample = 0; sample < NUMBER_SAMPLES; sample++) {
         
-        // elapsed = parallel(m, n) / (double) CLOCKS_PER_SEC;
-        elapsed = serial(m, n) / (double) CLOCKS_PER_SEC;
+        elapsed = parallel(m, n);
+        // elapsed = serial(m, n);
 
         samples.push_back(elapsed);
         mean = (sample * mean + elapsed)/ (sample + 1);
@@ -170,8 +170,8 @@ void testCmpSyncAsync(Matrix<double>* m, Matrix<double>* n) {
     }
     
     std::cout << "Final deviation = " << deviation << " s^2" << std::endl;
-    dump(samples, "serial.txt");
-    // dump(samples, "parallel.txt");
+    // dump(samples, "serial.txt");
+    dump(samples, "parallel.txt");
 }
 
 int main() {
@@ -182,9 +182,9 @@ int main() {
     *m = Matrix<>::random(MATRIX_SIZE, MATRIX_SIZE);
     *n = Matrix<>::random(MATRIX_SIZE, MATRIX_SIZE);
 
-    testThreads(m, n);
-    // testCmpSyncAsync(m, n);
+    // testThreads(m, n);
+    testCmpSyncAsync(m, n);
 
-    std::cout << "Program duration: " << (now() - program_timer) / (double) CLOCKS_PER_SEC << std::endl;
+    std::cout << "Program duration: " << (now() - program_timer) << std::endl;
     return 0;
 }
