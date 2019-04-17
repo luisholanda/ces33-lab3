@@ -104,8 +104,8 @@ void serial(Matrix<double>* m, Matrix<double>* n) {
 }
 
 int main() {
-    auto m = new Matrix(MATRIX_SIZE, MATRIX_SIZE);
-    auto n = new Matrix(MATRIX_SIZE, MATRIX_SIZE);
+    auto m = new Matrix<>(MATRIX_SIZE, MATRIX_SIZE);
+    auto n = new Matrix<>(MATRIX_SIZE, MATRIX_SIZE);
 
     *m = Matrix<>::random(MATRIX_SIZE, MATRIX_SIZE);
     *n = Matrix<>::random(MATRIX_SIZE, MATRIX_SIZE);
