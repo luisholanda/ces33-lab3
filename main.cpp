@@ -1,8 +1,10 @@
 #include <iostream>
+#include <fstream>
 #include <optional>
 #include <thread>
 #include <ctime>
 #include <cmath>
+#include <string>
 
 #include "Matrix.hpp"
 
@@ -11,7 +13,7 @@
 
 const size_t MATRIX_SIZE = 100;
 const size_t NUMBER_OPS = 1000;
-const size_t NUMBER_SAMPLES = 1;
+const size_t NUMBER_SAMPLES = 2000;
 
 const size_t NUMBER_THREADS = 4;
 const size_t CHANNEL_SIZE = 16;
@@ -99,13 +101,23 @@ void parallel(Matrix<double>* m, Matrix<double>* n) {
     }
 }
 
-double serial(Matrix<double>* m, Matrix<double>* n) {
+void serial(Matrix<double>* m, Matrix<double>* n) {
     for (size_t i = 0; i != NUMBER_OPS; i++) {
         auto op = random_op(m, n);
-        std::cout << "Recv OP [kind = " << op.kind << "] num " << i << " " << NUMBER_OPS << " " << (i < NUMBER_OPS) << std::endl;
+        // std::cout << "Recv OP [kind = " << op.kind << "] num " << i << " " << NUMBER_OPS << " " << (i < NUMBER_OPS) << std::endl;
         execute(op);
-        std::cout << "Finished OP" << std::endl;
+        // std::cout << "Finished OP" << std::endl;
     }
+}
+
+void dump(const std::vector<double> data, std::string filename) {
+    std::ofstream of(filename);
+
+    for (const auto& elem : data) {
+        of << elem << std::endl;
+    }
+
+    of.close();
 }
 
 int main() {
@@ -114,11 +126,13 @@ int main() {
 
     *m = Matrix<>::random(MATRIX_SIZE, MATRIX_SIZE);
     *n = Matrix<>::random(MATRIX_SIZE, MATRIX_SIZE);
+
     clock_t timer;
-    double elapsed, mean, deviation = -1.0;
+    double elapsed, mean = 0.0, deviation = -1.0;
     std::vector<double> samples;
     for (size_t sample = 0; sample < NUMBER_SAMPLES; sample++) {
         timer = std::clock();
+        
         // parallel(m, n);
         serial(m, n);
 
@@ -126,7 +140,7 @@ int main() {
         samples.push_back(elapsed);
         mean = (sample * mean + elapsed)/ (sample + 1);
         
-        std::cout << "Iteration " << sample + 1 << ": mean = " << mean << std::endl;
+        std::cout << "Iteration " << sample + 1 << ": mean = " << mean << "s" << std::endl;
     }
 
     if (samples.size() > 1) {
@@ -137,7 +151,9 @@ int main() {
         deviation /= ((int)samples.size() - 1);
     }
     
-    std::cout << "Final deviation = " << deviation << std::endl;
+    std::cout << "Final deviation = " << deviation << " s^2" << std::endl;
+    dump(samples, "serial.txt");
+    // dump(samples, "parallel.txt");
 
     return 0;
 }
