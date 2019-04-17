@@ -1,13 +1,18 @@
 #include <iostream>
 #include <optional>
 #include <thread>
+#include <ctime>
+#include <cmath>
+
 #include "Matrix.hpp"
 
 #include "Operation.hpp"
 #include "Channel.hpp"
 
 const size_t MATRIX_SIZE = 100;
-const size_t NUMBER_OPS = 10000;
+const size_t NUMBER_OPS = 1000;
+const size_t NUMBER_SAMPLES = 1;
+
 const size_t NUMBER_THREADS = 4;
 const size_t CHANNEL_SIZE = 16;
 
@@ -94,10 +99,10 @@ void parallel(Matrix<double>* m, Matrix<double>* n) {
     }
 }
 
-void serial(Matrix<double>* m, Matrix<double>* n) {
+double serial(Matrix<double>* m, Matrix<double>* n) {
     for (size_t i = 0; i != NUMBER_OPS; i++) {
         auto op = random_op(m, n);
-        std::cout << "Recv OP " << op.kind << std::endl;
+        std::cout << "Recv OP [kind = " << op.kind << "] num " << i << " " << NUMBER_OPS << " " << (i < NUMBER_OPS) << std::endl;
         execute(op);
         std::cout << "Finished OP" << std::endl;
     }
@@ -109,9 +114,30 @@ int main() {
 
     *m = Matrix<>::random(MATRIX_SIZE, MATRIX_SIZE);
     *n = Matrix<>::random(MATRIX_SIZE, MATRIX_SIZE);
+    clock_t timer;
+    double elapsed, mean, deviation = -1.0;
+    std::vector<double> samples;
+    for (size_t sample = 0; sample < NUMBER_SAMPLES; sample++) {
+        timer = std::clock();
+        // parallel(m, n);
+        serial(m, n);
 
-    parallel(m, n);
-//    serial(m, n);
+        elapsed = (std::clock() - timer) / (double) CLOCKS_PER_SEC;
+        samples.push_back(elapsed);
+        mean = (sample * mean + elapsed)/ (sample + 1);
+        
+        std::cout << "Iteration " << sample + 1 << ": mean = " << mean << std::endl;
+    }
+
+    if (samples.size() > 1) {
+        deviation = 0.0;
+        for (const auto& sample : samples) {
+        deviation += (sample - mean) * (sample - mean);
+        }
+        deviation /= ((int)samples.size() - 1);
+    }
+    
+    std::cout << "Final deviation = " << deviation << std::endl;
 
     return 0;
 }
